@@ -1,22 +1,34 @@
-import { useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useEffect, useState } from 'react';
 import './App.css';
-import logo from './logo.svg';
+import ProductItem from './components/ProductItem/ProductItem';
+import { IProduct } from './types';
 
 function App() {
+    const [data, setData] = useState<IProduct[]>([]);
+
     useEffect(() => {
-        const socket = io('http://localhost:4000');
-        socket.on('connect', () => {
-            console.log('connected');
-        });
-        socket.on('disconnect', () => {
-            console.log('disconnected');
-        });
+        fetchData();
     }, []);
+
+    const fetchData = () => {
+        fetch('http://localhost:4000/api/launch')
+            .then((res) => res.json())
+            .then((data) => {
+                console.log(data);
+                setData(data.data);
+            })
+            .catch((err) => console.error(err));
+    };
     return (
         <div className="App">
             <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
+                <div className="container pt-5">
+                    <div className="row">
+                        {data.map((product) => (
+                            <ProductItem product={product} key={product._id} />
+                        ))}
+                    </div>
+                </div>
             </header>
         </div>
     );

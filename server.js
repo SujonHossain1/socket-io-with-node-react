@@ -24,17 +24,41 @@ const io = new Server(expressServer, {
     }
 });
 
-io.on('connection', (socket) => {
+global.io = io;
+
+// Api Routes Imports
+const launchRoutes = require('./routes/launch');
+const Launch = require('./models/lunch');
+
+app.use('/api/launch', launchRoutes);
+
+app.get('/', (req, res) => {
+    res.send('Hello World');
+});
+
+/** Socket functionality  */
+global.io.on('connection', (socket) => {
     console.log('New user connected');
+
+    setTimeout(() => {
+        socket.emit('send', {
+            message: 'Welcome to the chat app'
+        })
+    }, 10000);
+
+    socket.on('processing', async (data) => {
+        console.log(data);
+        const launch = await Launch.findOneAndUpdate({ _id: data._id }, { $set: { status: "processing", processingBy: 'Sujon Hossain' } }, { new: true })
+        socket.emit('processResponse', {
+            data: launch,
+            message: 'Processing your request'
+        })
+
+    });
 
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });
-});
-
-
-app.get('/', (req, res) => {
-    res.send('Hello World');
 });
 
 const PORT = process.env.PORT || 4000;
