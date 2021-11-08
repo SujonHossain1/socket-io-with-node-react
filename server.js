@@ -7,6 +7,7 @@ const { Server } = require('socket.io');
 
 // Api Routes Imports
 const launchRoutes = require('./routes/launch');
+const Launch = require('./models/lunch');
 
 const app = express();
 const expressServer = http.createServer(app);
@@ -27,10 +28,22 @@ const io = new Server(expressServer, {
     }
 });
 
-io.on('connection', (socket) => {
-    console.log("New User Connected")
+io.on('connection', async (socket) => {
+
     socket.on('message', ({ message }) => {
         io.emit('message', { message })
+    });
+
+    /*** get all launch  */
+    const launch = await Launch.find({});
+    socket.emit('launch', { launch });
+
+    /*** get launch for update */
+    socket.on('launch', async ({ launchItem }) => {
+        const updateLaunchItem = await Launch.findOneAndUpdate({ _id: launchItem._id }, { $set: { status: "processing" } }, { new: true });
+        console.log(updateLaunchItem);
+        const launch = await Launch.find({});
+        socket.emit('launch', { launch });
     })
 })
 
