@@ -5,6 +5,9 @@ const morgan = require('morgan');
 const http = require('http');
 const { Server } = require('socket.io');
 
+// Api Routes Imports
+const launchRoutes = require('./routes/launch');
+
 const app = express();
 const expressServer = http.createServer(app);
 
@@ -24,11 +27,19 @@ const io = new Server(expressServer, {
     }
 });
 
-global.io = io;
+io.on('connection', function (socket) {
+    console.log('a user connected');
 
-// Api Routes Imports
-const launchRoutes = require('./routes/launch');
-const Launch = require('./models/lunch');
+
+    socket.on('chat', function (payload) {
+        console.log('what is payload', payload)
+        socket.emit('chat', payload);
+    })
+
+});
+
+
+
 
 app.use('/api/launch', launchRoutes);
 
@@ -36,24 +47,14 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-io.on('connection', async (socket) => {
-    console.log('New user connected');
-
-    socket.on('msg', (data) => {
-        socket.emit('reply', data);
-    })
-
-});
 
 
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/socket-io';
-const NODE_ENV = process.env.NODE_ENV || 'development';
 
-const server = expressServer.listen(PORT, () => {
-    const port = server.address().port;
-    console.log(`SERVER IS RUNNING ON PORT ${port} AND SERVER ON MODE ${NODE_ENV}`);
+expressServer.listen(PORT, () => {
+    console.log(`SERVER IS RUNNING ON PORT 4000`);
 
     if (process.env.NODE_ENV === 'production') {
         console.log('Please connect live mongodb url');
