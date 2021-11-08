@@ -12,28 +12,37 @@ const App = () => {
     useEffect(() => {
         socketRef.current = io("http://localhost:4000");
 
-        socketRef.current.on("message", ({ message }) => {
+        socketRef.current.on("message2", ({ message }) => {
             setChat([...chat, { message }])
         })
 
+        /*** launch item real update */
+        socketRef.current.on("message", ({ message }) => {
+            console.log("message", message)
+        })
         /** Get all launch */
         socketRef.current.on("launch", ({ launch }) => {
-            console.log(launch)
             setLaunch(launch)
+        });
+
+        /*** after update status */
+        socketRef.current.on("updatedLaunch", (data) => {
+            console.log(data)
         })
 
         return () => socketRef.current.disconnect()
     }, [chat]);
 
     const onMessageSubmit = (e) => {
-        const { message } = state
-        socketRef.current.emit("message", { message })
         e.preventDefault()
+        const { message } = state
+        socketRef.current.emit("message2", { message })
+
         setState({ message: "" })
     }
 
     const updateStatusHandler = (launchItem) => {
-        socketRef.current.emit("launch", { launchItem })
+        socketRef.current.emit("message", { message: launchItem })
     }
 
     return (

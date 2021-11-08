@@ -30,7 +30,14 @@ const io = new Server(expressServer, {
 
 io.on('connection', async (socket) => {
 
-    socket.on('message', ({ message }) => {
+    socket.on('message2', ({ message }) => {
+        io.emit('message2', { message })
+    });
+
+
+    socket.on('message', async ({ message }) => {
+        const updatedLaunch = await Launch.findOneAndUpdate({ _id: message._id }, { $set: { status: "processing" } }, { new: true });
+        console.log(updatedLaunch);
         io.emit('message', { message })
     });
 
@@ -38,13 +45,7 @@ io.on('connection', async (socket) => {
     const launch = await Launch.find({});
     socket.emit('launch', { launch });
 
-    /*** get launch for update */
-    socket.on('launch', async ({ launchItem }) => {
-        const updateLaunchItem = await Launch.findOneAndUpdate({ _id: launchItem._id }, { $set: { status: "processing" } }, { new: true });
-        console.log(updateLaunchItem);
-        const launch = await Launch.find({});
-        socket.emit('launch', { launch });
-    })
+
 })
 
 
