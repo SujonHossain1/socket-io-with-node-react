@@ -27,22 +27,16 @@ const io = new Server(expressServer, {
     }
 });
 
-io.on('connection', function (socket) {
-    console.log('a user connected');
-
-
-    socket.on('chat', function (payload) {
-        console.log('what is payload', payload)
-        socket.emit('chat', payload);
+io.on('connection', (socket) => {
+    console.log("New User Connected")
+    socket.on('message', ({ message }) => {
+        io.emit('message', { message })
     })
-
-});
-
+})
 
 
 
 app.use('/api/launch', launchRoutes);
-
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
@@ -56,13 +50,9 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/socket-io'
 expressServer.listen(PORT, () => {
     console.log(`SERVER IS RUNNING ON PORT 4000`);
 
-    if (process.env.NODE_ENV === 'production') {
-        console.log('Please connect live mongodb url');
-    } else {
-        mongoose.connect(MONGO_URI)
-        const db = mongoose.connection;
-        db.on('connected', () => {
-            console.log(`Connected to MongoDB ${db.name} at ${db.host}:${db.port}`);
-        })
-    }
+    mongoose.connect(MONGO_URI);
+    const db = mongoose.connection;
+    db.on('connected', () => {
+        console.log(`Connected to MongoDB ${db.name} at ${db.host}:${db.port}`);
+    })
 });

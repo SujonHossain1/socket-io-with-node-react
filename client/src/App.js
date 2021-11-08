@@ -1,42 +1,51 @@
-import { nanoid } from 'nanoid';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import './App.css';
 
-const socket = io('http://localhost:4000');
-const id = nanoid(4)
+const App = () => {
+    const [state, setState] = useState({ message: "" })
+    const [chat, setChat] = useState([]);
+    const socketRef = useRef();
 
-function App() {
-  const [message, setMessage] = useState("");
-  const [chat, setChat] = useState([]);
+    useEffect(() => {
+        socketRef.current = io("http://localhost:4000");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    socket.emit('chat', { message, id });
-    setMessage("");
-  }
+        socketRef.current.on("message", ({ message }) => {
+            setChat([...chat, { message }])
+        })
 
-  useEffect(() => {
-    socket.on('chat', (data) => {
-      setChat(chat => [...chat, data]);
-    });
-  })
+        return () => socketRef.current.disconnect()
+    }, [chat]);
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <ul>
-          {chat.map((item) => <li key={item.id}>
-            {item.message}
-          </li>)}
-        </ul>
-        <form onSubmit={handleSubmit}>
-          <input type="text" name="text" value={message} onChange={(event) => setMessage(event.target.value)} />
-          <button type="submit">Send</button>
-        </form>
-      </header>
-    </div>
-  );
+    const onMessageSubmit = (e) => {
+        const { message } = state
+        socketRef.current.emit("message", { message })
+        e.preventDefault()
+        setState({ message: "" })
+    }
+
+    return (
+        <div>
+            <form onSubmit={onMessageSubmit}>
+                <h1>Messenger</h1>
+                <input
+                    name="message"
+                    onChange={(e) => setState({ ...state, message: e.target.value })}
+                    value={state.message}
+                    label="Message"
+                />
+                <button type="submit">Send Message</button>
+
+            </form>
+            <div className="render-chat">
+                <h4>Chat Log</h4>
+                {chat.map(({ message }, index) => (
+                    <div key={index}>
+                        <h3> {message} </h3>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
 }
 
-export default App;
+export default App
