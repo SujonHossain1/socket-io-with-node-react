@@ -37,8 +37,9 @@ io.on('connection', async (socket) => {
 
     socket.on('message', async ({ message }) => {
         const updatedLaunch = await Launch.findOneAndUpdate({ _id: message._id }, { $set: { status: "processing" } }, { new: true });
-        console.log(updatedLaunch);
-        io.emit('message', { message })
+        const launches = await Launch.find({});
+
+        io.emit('message', { launches })
     });
 
     /*** get all launch  */

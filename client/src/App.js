@@ -17,8 +17,9 @@ const App = () => {
         })
 
         /*** launch item real update */
-        socketRef.current.on("message", ({ message }) => {
-            console.log("message", message)
+        socketRef.current.on("message", ({ launches }) => {
+            console.log("message", launches);
+            setLaunch(launches);
         })
         /** Get all launch */
         socketRef.current.on("launch", ({ launch }) => {
