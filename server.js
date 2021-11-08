@@ -36,30 +36,16 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-/** Socket functionality  */
-global.io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log('New user connected');
 
-    setTimeout(() => {
-        socket.emit('send', {
-            message: 'Welcome to the chat app'
-        })
-    }, 10000);
+    socket.on('msg', (data) => {
+        socket.emit('reply', data);
+    })
 
-    socket.on('processing', async (data) => {
-        console.log(data);
-        const launch = await Launch.findOneAndUpdate({ _id: data._id }, { $set: { status: "processing", processingBy: 'Sujon Hossain' } }, { new: true })
-        socket.emit('processResponse', {
-            data: launch,
-            message: 'Processing your request'
-        })
-
-    });
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected');
-    });
 });
+
+
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/socket-io';

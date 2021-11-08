@@ -7,15 +7,12 @@ interface IProps {
 }
 
 const ProductItem = ({ product }: IProps) => {
-    const [level, setLevel] = useState(product.status);
+    const [level] = useState(product.status);
 
     const bookingHandler = (product: IProduct) => {
         const socket = io('http://localhost:4000');
-        socket.emit('processing', product);
-
-        socket.on('processResponse', (data) => {
-            console.log(data, 'response data');
-            setLevel(data.data.status);
+        socket.emit('processing', {
+            message: 'get data',
         });
     };
 
